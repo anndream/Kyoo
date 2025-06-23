@@ -1,59 +1,3 @@
-/*
- * Kyoo - A portable and vast media library solution.
- * Copyright (c) Kyoo.
- *
- * See AUTHORS.md and LICENSE file in the project root for full license information.
- *
- * Kyoo is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * Kyoo is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kyoo. If not, see <https://www.gnu.org/licenses/>.
- */
-
-import {
-	type Genre,
-	type KyooImage,
-	type Movie,
-	type QueryIdentifier,
-	type Show,
-	type Studio,
-	getDisplayDate,
-	queryFn,
-	useAccount,
-} from "@kyoo/models";
-import type { WatchStatusV } from "@kyoo/models/src/resources/watch-status";
-import {
-	A,
-	Chip,
-	Container,
-	DottedSeparator,
-	GradientImageBackground,
-	H1,
-	H2,
-	HR,
-	Head,
-	IconButton,
-	IconFab,
-	LI,
-	Link,
-	Menu,
-	P,
-	Poster,
-	Skeleton,
-	UL,
-	capitalize,
-	tooltip,
-	ts,
-	usePopup,
-} from "@kyoo/primitives";
 import Refresh from "@material-symbols/svg-400/rounded/autorenew.svg";
 import Download from "@material-symbols/svg-400/rounded/download.svg";
 import MoreHoriz from "@material-symbols/svg-400/rounded/more_horiz.svg";
@@ -65,8 +9,6 @@ import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { type ImageStyle, Platform, View } from "react-native";
 import {
-	type Stylable,
-	type Theme,
 	em,
 	max,
 	md,
@@ -74,16 +16,44 @@ import {
 	percent,
 	px,
 	rem,
+	type Stylable,
+	type Theme,
 	useYoshiki,
 	vh,
 } from "yoshiki/native";
-import { MediaInfoPopup } from "../components/media-info";
-import { Rating } from "../components/rating";
-import { WatchListInfo } from "../components/watchlist-info";
-import { useDownloader } from "../downloads";
-import { Fetch } from "../fetch";
-import { displayRuntime } from "./episode";
-import { ShowWatchStatusCard } from "./show";
+import type {
+	Genre,
+	KImage,
+	Movie,
+	Serie,
+	Show,
+	Studio,
+	WatchStatusV,
+} from "~/models";
+import {
+	A,
+	Chip,
+	Container,
+	capitalize,
+	DottedSeparator,
+	GradientImageBackground,
+	H1,
+	H2,
+	Head,
+	HR,
+	IconButton,
+	IconFab,
+	LI,
+	Link,
+	Menu,
+	P,
+	Poster,
+	Skeleton,
+	tooltip,
+	ts,
+	UL,
+} from "~/primitives";
+import { Fetch, QueryIdentifier } from "~/query";
 
 const ButtonList = ({
 	playHref,
@@ -113,7 +83,13 @@ const ButtonList = ({
 	});
 
 	return (
-		<View {...css({ flexDirection: "row", alignItems: "center", justifyContent: "center" })}>
+		<View
+			{...css({
+				flexDirection: "row",
+				alignItems: "center",
+				justifyContent: "center",
+			})}
+		>
 			{playHref !== null && (
 				<IconFab
 					icon={PlayArrow}
@@ -146,7 +122,11 @@ const ButtonList = ({
 				/>
 			)}
 			{((type === "movie" && slug) || account?.isAdmin === true) && (
-				<Menu Trigger={IconButton} icon={MoreHoriz} {...tooltip(t("misc.more"))}>
+				<Menu
+					Trigger={IconButton}
+					icon={MoreHoriz}
+					{...tooltip(t("misc.more"))}
+				>
 					{type === "movie" && slug && (
 						<>
 							<Menu.Item
@@ -158,7 +138,13 @@ const ButtonList = ({
 								icon={MovieInfo}
 								label={t("home.episodeMore.mediainfo")}
 								onSelect={() =>
-									setPopup(<MediaInfoPopup mediaType={"movie"} mediaSlug={slug!} close={close} />)
+									setPopup(
+										<MediaInfoPopup
+											mediaType={"movie"}
+											mediaSlug={slug!}
+											close={close}
+										/>,
+									)
 								}
 							/>
 						</>
@@ -238,7 +224,10 @@ export const TitleLine = ({
 						width: { xs: percent(50), md: percent(25) },
 					}}
 					{...(css({
-						maxWidth: { xs: px(175), sm: Platform.OS === "web" ? ("unset" as any) : 99999999 },
+						maxWidth: {
+							xs: px(175),
+							sm: Platform.OS === "web" ? ("unset" as any) : 99999999,
+						},
 						flexShrink: 0,
 					}) as { style: ImageStyle })}
 				/>
@@ -258,13 +247,20 @@ export const TitleLine = ({
 					>
 						<Skeleton
 							variant="header"
-							{...css({ width: rem(15), height: rem(2.5), marginBottom: rem(1) })}
+							{...css({
+								width: rem(15),
+								height: rem(2.5),
+								marginBottom: rem(1),
+							})}
 						>
 							{isLoading || (
 								<>
 									<H1
 										{...css({
-											color: (theme: Theme) => ({ xs: theme.user.heading, md: theme.heading }),
+											color: (theme: Theme) => ({
+												xs: theme.user.heading,
+												md: theme.heading,
+											}),
 										})}
 									>
 										{name}
@@ -303,7 +299,10 @@ export const TitleLine = ({
 										marginTop: 0,
 										letterSpacing: 0,
 										textAlign: { xs: "center", sm: "left" },
-										color: (theme: Theme) => ({ xs: theme.user.heading, md: theme.heading }),
+										color: (theme: Theme) => ({
+											xs: theme.user.heading,
+											md: theme.heading,
+										}),
 									})}
 								>
 									{tagline}
@@ -327,12 +326,21 @@ export const TitleLine = ({
 							watchStatus={watchStatus}
 						/>
 						<View
-							{...css({ flexDirection: "row", alignItems: "center", justifyContent: "center" })}
+							{...css({
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+							})}
 						>
 							{rating !== null && rating !== 0 && (
 								<>
 									<DottedSeparator
-										{...css({ color: { xs: theme.user.contrast, md: theme.colors.white } })}
+										{...css({
+											color: {
+												xs: theme.user.contrast,
+												md: theme.colors.white,
+											},
+										})}
 									/>
 									<Rating
 										rating={rating}
@@ -343,9 +351,21 @@ export const TitleLine = ({
 							{runtime && (
 								<>
 									<DottedSeparator
-										{...css({ color: { xs: theme.user.contrast, md: theme.colors.white } })}
+										{...css({
+											color: {
+												xs: theme.user.contrast,
+												md: theme.colors.white,
+											},
+										})}
 									/>
-									<P {...css({ color: { xs: theme.user.contrast, md: theme.colors.white } })}>
+									<P
+										{...css({
+											color: {
+												xs: theme.user.contrast,
+												md: theme.colors.white,
+											},
+										})}
+									>
 										{displayRuntime(runtime)}
 									</P>
 								</>
@@ -385,7 +405,10 @@ export const TitleLine = ({
 							{isLoading ? (
 								<Skeleton {...css({ width: rem(5) })} />
 							) : (
-								<A href={`/studio/${studio.slug}`} {...css({ color: (theme) => theme.user.link })}>
+								<A
+									href={`/studio/${studio.slug}`}
+									{...css({ color: (theme) => theme.user.link })}
+								>
 									{studio.name}
 								</A>
 							)}
@@ -413,7 +436,10 @@ const Description = ({
 
 	return (
 		<Container
-			{...css({ paddingBottom: ts(1), flexDirection: { xs: "column", sm: "row" } }, props)}
+			{...css(
+				{ paddingBottom: ts(1), flexDirection: { xs: "column", sm: "row" } },
+				props,
+			)}
 		>
 			<P
 				{...css({
@@ -429,7 +455,9 @@ const Description = ({
 						{isLoading ? (
 							<Skeleton {...css({ width: rem(5) })} />
 						) : (
-							<A href={`/genres/${genre.toLowerCase()}`}>{t(`genres.${genre}`)}</A>
+							<A href={`/genres/${genre.toLowerCase()}`}>
+								{t(`genres.${genre}`)}
+							</A>
 						)}
 					</Fragment>
 				))}
@@ -445,7 +473,9 @@ const Description = ({
 			>
 				<Skeleton lines={4}>
 					{isLoading || (
-						<P {...css({ textAlign: "justify" })}>{overview ?? t("show.noOverview")}</P>
+						<P {...css({ textAlign: "justify" })}>
+							{overview ?? t("show.noOverview")}
+						</P>
 					)}
 				</Skeleton>
 				<View
@@ -472,7 +502,12 @@ const Description = ({
 				orientation="vertical"
 				{...css({ marginX: ts(2), display: { xs: "none", sm: "flex" } })}
 			/>
-			<View {...css({ flexBasis: percent(25), display: { xs: "none", sm: "flex" } })}>
+			<View
+				{...css({
+					flexBasis: percent(25),
+					display: { xs: "none", sm: "flex" },
+				})}
+			>
 				<H2>{t("show.genre")}</H2>
 				{isLoading || genres?.length ? (
 					<UL>
@@ -481,7 +516,9 @@ const Description = ({
 								{isLoading ? (
 									<Skeleton {...css({ marginBottom: 0 })} />
 								) : (
-									<A href={`/genres/${genre.toLowerCase()}`}>{t(`genres.${genre}`)}</A>
+									<A href={`/genres/${genre.toLowerCase()}`}>
+										{t(`genres.${genre}`)}
+									</A>
 								)}
 							</LI>
 						))}
@@ -496,10 +533,10 @@ const Description = ({
 
 export const Header = ({
 	query,
-	type,
+	kind,
 }: {
-	query: QueryIdentifier<Show | Movie>;
-	type: "movie" | "show";
+	query: QueryIdentifier<Serie | Movie>;
+	kind: "movie" | "show";
 }) => {
 	const { css } = useYoshiki();
 	const { t } = useTranslation();
@@ -508,7 +545,11 @@ export const Header = ({
 		<Fetch query={query}>
 			{({ isLoading, ...data }) => (
 				<>
-					<Head title={data?.name} description={data?.overview} image={data?.thumbnail?.high} />
+					<Head
+						title={data?.name}
+						description={data?.overview}
+						image={data?.thumbnail?.high}
+					/>
 					<GradientImageBackground
 						src={data?.thumbnail}
 						quality="high"
@@ -547,9 +588,13 @@ export const Header = ({
 							marginTop: ts(0.5),
 						})}
 					>
-						<P {...css({ marginRight: ts(0.5), textAlign: "center" })}>{t("show.links")}:</P>
+						<P {...css({ marginRight: ts(0.5), textAlign: "center" })}>
+							{t("show.links")}:
+						</P>
 						{(!isLoading
-							? Object.entries(data.externalId!).filter(([_, data]) => data.link)
+							? Object.entries(data.externalId!).filter(
+									([_, data]) => data.link,
+								)
 							: [...Array(3)].map((_) => [undefined, undefined] as const)
 						).map(([name, data], i) => (
 							<Chip
@@ -563,7 +608,9 @@ export const Header = ({
 							/>
 						))}
 					</Container>
-					{type === "show" && <ShowWatchStatusCard {...(data?.watchStatus as any)} />}
+					{type === "show" && (
+						<ShowWatchStatusCard {...(data?.watchStatus as any)} />
+					)}
 				</>
 			)}
 		</Fetch>
